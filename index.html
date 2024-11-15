@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://telegram.org/js/telegram-web-app.js"</script>
   <title>Flying Numbers Animation</title>
   <style>
     body {
@@ -79,6 +80,7 @@
     scoreDisplay.textContent = score;
 
     let sizeIncrement = 0;
+    let tapCount = 0; // Track number of taps
     let shrinkInterval;
 
     // Update score
@@ -104,23 +106,28 @@
       updateScore();
     }
 
-    // Grow the image
+    // Grow the image (only up to 25 taps)
     function growImage() {
-      clearInterval(shrinkInterval); // Stop shrinking while tapping
-      sizeIncrement += 5;
-      centerImage.style.width = `${400 + sizeIncrement}px`;
-      centerImage.style.height = `${400 + sizeIncrement}px`;
+      if (tapCount < 25) {
+        sizeIncrement += 5;
+        centerImage.style.width = `${400 + sizeIncrement}px`;
+        centerImage.style.height = `${400 + sizeIncrement}px`;
+        tapCount++;
+      }
 
-      // Start shrinking back to normal size
-      shrinkInterval = setInterval(() => {
-        if (sizeIncrement > 0) {
-          sizeIncrement -= 10;
-          centerImage.style.width = `${400 + sizeIncrement}px`;
-          centerImage.style.height = `${400 + sizeIncrement}px`;
-        } else {
-          clearInterval(shrinkInterval);
-        }
-      }, 500);
+      // Start shrinking back to normal size after 25 taps
+      if (tapCount === 25) {
+        clearInterval(shrinkInterval); // Stop any previous shrinking
+        shrinkInterval = setInterval(() => {
+          if (sizeIncrement > 0) {
+            sizeIncrement -= 5;
+            centerImage.style.width = `${400 + sizeIncrement}px`;
+            centerImage.style.height = `${400 + sizeIncrement}px`;
+          } else {
+            clearInterval(shrinkInterval);
+          }
+        }, 500); // Shrink back gradually
+      }
     }
 
     // Handle clicks and taps
@@ -136,6 +143,10 @@
       createFlyingNumber(touchX, touchY);
       growImage();
     });
+
+// Set header color for Telegram WebApp
+    tg.setHeaderColor("#133A2A"); // Set desired color
+    tg.setBackgroundColor("#133A2A"); // Set background color
   </script>
 </body>
 </html>

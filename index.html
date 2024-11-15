@@ -108,8 +108,8 @@
     function growImage() {
       clearInterval(shrinkInterval); // Stop shrinking while tapping
       sizeIncrement += 5;
-      centerImage.style.width = `${150 + sizeIncrement}px`;
-      centerImage.style.height = `${150 + sizeIncrement}px`;
+      centerImage.style.width = `${400 + sizeIncrement}px`;
+      centerImage.style.height = `${400 + sizeIncrement}px`;
 
       // Start shrinking back to normal size
       shrinkInterval = setInterval(() => {

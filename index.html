@@ -45,6 +45,21 @@
       }
     }
 
+    .button {
+  background-image: url('hamster.png'); /* Correct way to set the background image */
+  background-size: cover; /* Ensures the image fills the element */
+  background-repeat: no-repeat; /* Prevents the image from repeating */
+  width: 100px; /* Set the button's width */
+  height: 100px; /* Set the button's height */
+  position: absolute; /* Enables positioning relative to the viewport */
+  top: 10px; /* Position from the top */
+  right: 10px; /* Position from the right */
+  border: none; /* Optional: Removes any default border */
+  cursor: pointer; /* Optional: Changes cursor to pointer on hover */
+}
+
+      
+
     /* Score Display */
     #scoreDisplay {
       position: absolute;
@@ -73,6 +88,7 @@
   </style>
 </head>
 <body>
+  <button class="button" id="navigateButton"></button>
   <div id="scoreDisplay">
     <img id="coinIcon" src="coinlogo.png" alt="Coin" />
     <span id="score">0</span>
@@ -81,6 +97,15 @@
   <img id="centerImage" src="alex.png" alt="Center Image">
 
   <script>
+    // JavaScript function to navigate to alex.html
+    function navigateToAlex() {
+      window.location.href = 'alex.html'; // Redirects to alex.html
+    }
+
+    // Attach click event listener to the button
+    const button = document.getElementById('navigateButton');
+    button.addEventListener('click', navigateToAlex);
+    
     const tg = window.Telegram.WebApp;
 
     tg.ready();
@@ -95,8 +120,8 @@
 
        // Set header color for Telegram WebApp
     if (window.Telegram) {
-      Telegram.WebApp.setHeaderColor("#2D1A0F"); // Set desired color
-      Telegram.WebApp.setBackgroundColor("#2D1A0F"); // Set background color
+      Telegram.WebApp.setHeaderColor("#3C210C"); // Set desired color
+      Telegram.WebApp.setBackgroundColor("#3C210C"); // Set background color
     }
     
     const centerImage = document.getElementById('centerImage');

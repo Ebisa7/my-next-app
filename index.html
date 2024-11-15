@@ -65,8 +65,8 @@
 
     #centerImage {
       position: absolute;
-      width: 400px;
-      height: 400px;
+      width: 300px;
+      height: 300px;
       transition: width 0.1s, height 0.1s, transform 0.5s ease-out;
     }
   </style>
@@ -116,8 +116,8 @@
     function growImage() {
       if (tapCount < 10) {
         sizeIncrement += 5;
-        centerImage.style.width = `${400 + sizeIncrement}px`;
-        centerImage.style.height = `${400 + sizeIncrement}px`;
+        centerImage.style.width = `${300 + sizeIncrement}px`;
+        centerImage.style.height = `${300 + sizeIncrement}px`;
         tapCount++;
       }
 
@@ -127,8 +127,8 @@
         shrinkInterval = setInterval(() => {
           if (sizeIncrement > 0) {
             sizeIncrement -= 5;
-            centerImage.style.width = `${400 + sizeIncrement}px`;
-            centerImage.style.height = `${400 + sizeIncrement}px`;
+            centerImage.style.width = `${300 + sizeIncrement}px`;
+            centerImage.style.height = `${300 + sizeIncrement}px`;
           } else {
             clearInterval(shrinkInterval);
           }

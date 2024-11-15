@@ -58,8 +58,8 @@
 
     #centerImage {
       position: absolute;
-      width: 150px;
-      height: 150px;
+      width: 400px;
+      height: 400px;
       transition: width 0.1s, height 0.1s, transform 0.5s ease-out;
     }
   </style>
@@ -114,7 +114,7 @@
       // Start shrinking back to normal size
       shrinkInterval = setInterval(() => {
         if (sizeIncrement > 0) {
-          sizeIncrement -= 5;
+          sizeIncrement -= 10;
           centerImage.style.width = `${150 + sizeIncrement}px`;
           centerImage.style.height = `${150 + sizeIncrement}px`;
         } else {

@@ -16,13 +16,16 @@
       color: white;
       background-image: url('image.png'); /* Your background image */
       background-size: cover;
+      position: relative;
     }
+    
     .number {
       position: absolute;
       font-size: 20px;
       font-weight: bold;
       animation: fly 1s ease-out forwards;
     }
+
     @keyframes fly {
       0% {
         opacity: 1;
@@ -33,6 +36,7 @@
         transform: translateY(-250px) scale(4);
       }
     }
+
     #character {
       width: 100px;
       height: 100px;
@@ -40,20 +44,56 @@
       border-radius: 50%;
       transition: opacity 0.3s ease-out;
     }
+
+    /* Score Display */
+    #scoreDisplay {
+      position: absolute;
+      top: 20px; /* Adjust top margin for position */
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 30px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: white;
+      z-index: 10;
+    }
+
+    #scoreDisplay img {
+      width: 30px; /* Size of the coin logo */
+      height: 30px;
+    }
   </style>
 </head>
 <body>
+  <div id="scoreDisplay">
+    <img src="coinlogo.png" alt="Coin Logo">
+    <span id="score">0</span> <!-- Initial score -->
+  </div>
+
   <div id="character"></div>
 
   <script>
     const character = document.getElementById('character');
+    const scoreDisplay = document.getElementById('score');
+    const coinLogo = document.querySelector('#scoreDisplay img');
+
+    // Get the current score from localStorage or default to 0
+    let score = parseInt(localStorage.getItem('score')) || 0;
+    scoreDisplay.querySelector('#score').textContent = score;
+
+    // Save score to localStorage whenever it changes
+    function updateScore() {
+      localStorage.setItem('score', score);
+      scoreDisplay.querySelector('#score').textContent = score;
+    }
 
     // Hide the character when clicked
     character.addEventListener('click', () => {
-      character.style.opacity = 0;  // Hide the circle
+      character.style.opacity = 0;
       setTimeout(() => {
-        character.style.opacity = 1; // Show the circle again after 1s
-      }, 1000); // Delay to match the disappearing time
+        character.style.opacity = 1;
+      }, 1000); // Match disappearing time
     });
 
     // Function to create number animations
@@ -62,13 +102,17 @@
       number.className = 'number';
       number.style.left = `${x}px`;
       number.style.top = `${y}px`;
-      number.textContent = '+5'; // You can change this dynamically
+      number.textContent = '+1'; // Increment by 1 for each click or touch
       document.body.appendChild(number);
 
       // Remove the number after animation ends
       number.addEventListener('animationend', () => {
         number.remove();
       });
+
+      // Increment score and update display
+      score += 1;
+      updateScore();
     }
 
     // Handle mouse click (for PC)
@@ -76,27 +120,27 @@
       createFlyingNumber(e.clientX, e.clientY);
     });
 
-    // Listen to touch events for multi-touch support
+    // Handle touch events for multi-touch support (mobile)
     document.body.addEventListener('touchstart', (e) => {
-      e.preventDefault();  // Prevent default touch behavior like scrolling
+      e.preventDefault(); // Prevent default touch behavior like scrolling
       for (let i = 0; i < e.touches.length; i++) {
         const touch = e.touches[i];
         createFlyingNumber(touch.clientX, touch.clientY);
       }
     });
 
-    // Listen to touchmove events for multi-touch support
+    // Handle touch move events for multi-touch support (mobile)
     document.body.addEventListener('touchmove', (e) => {
-      e.preventDefault();  // Prevent default touch behavior like scrolling
+      e.preventDefault(); // Prevent default touch behavior like scrolling
       for (let i = 0; i < e.touches.length; i++) {
         const touch = e.touches[i];
         createFlyingNumber(touch.clientX, touch.clientY);
       }
     });
 
-    // Listen to touchend to clear touch interactions
+    // Handle touch end events to clear touch interactions (mobile)
     document.body.addEventListener('touchend', (e) => {
-      e.preventDefault();  // Prevent default touch behavior like scrolling
+      e.preventDefault(); // Prevent default touch behavior like scrolling
     });
 
   </script>

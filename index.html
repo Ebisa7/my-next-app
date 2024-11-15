@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flying Numbers Animation</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: #222;
+      color: white;
+      background-image: url('image.png'); /* Your background image */
+      background-size: cover;
+    }
+    .number {
+      position: absolute;
+      font-size: 20px;
+      font-weight: bold;
+      animation: fly 1s ease-out forwards;
+    }
+    @keyframes fly {
+      0% {
+        opacity: 1;
+        transform: translateY(1) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-250px) scale(4);
+      }
+    }
+    #character {
+      width: 100px;
+      height: 100px;
+      background: red;
+      border-radius: 50%;
+      transition: opacity 0.3s ease-out;
+    }
+  </style>
+</head>
+<body>
+  <div id="character"></div>
+
+  <script>
+    const character = document.getElementById('character');
+
+    // Hide the character when clicked
+    character.addEventListener('click', () => {
+      character.style.opacity = 0;  // Hide the circle
+      setTimeout(() => {
+        character.style.opacity = 1; // Show the circle again after 1s
+      }, 1000); // Delay to match the disappearing time
+    });
+
+    // Function to create number animations
+    function createFlyingNumber(x, y) {
+      const number = document.createElement('div');
+      number.className = 'number';
+      number.style.left = `${x}px`;
+      number.style.top = `${y}px`;
+      number.textContent = '+5'; // You can change this dynamically
+      document.body.appendChild(number);
+
+      // Remove the number after animation ends
+      number.addEventListener('animationend', () => {
+        number.remove();
+      });
+    }
+
+    // Handle mouse click (for PC)
+    document.body.addEventListener('click', (e) => {
+      createFlyingNumber(e.clientX, e.clientY);
+    });
+
+    // Listen to touch events for multi-touch support
+    document.body.addEventListener('touchstart', (e) => {
+      e.preventDefault();  // Prevent default touch behavior like scrolling
+      for (let i = 0; i < e.touches.length; i++) {
+        const touch = e.touches[i];
+        createFlyingNumber(touch.clientX, touch.clientY);
+      }
+    });
+
+    // Listen to touchmove events for multi-touch support
+    document.body.addEventListener('touchmove', (e) => {
+      e.preventDefault();  // Prevent default touch behavior like scrolling
+      for (let i = 0; i < e.touches.length; i++) {
+        const touch = e.touches[i];
+        createFlyingNumber(touch.clientX, touch.clientY);
+      }
+    });
+
+    // Listen to touchend to clear touch interactions
+    document.body.addEventListener('touchend', (e) => {
+      e.preventDefault();  // Prevent default touch behavior like scrolling
+    });
+
+  </script>
+</body>
+</html>

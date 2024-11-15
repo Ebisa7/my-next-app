@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flying Numbers Animation</title>
+  <title>Image Grow on Tap</title>
   <style>
     body {
       margin: 0;
@@ -18,135 +18,53 @@
       color: white;
       position: relative;
     }
-    
-    .number {
-      position: absolute;
-      font-size: 20px;
-      font-weight: bold;
-      animation: fly 1s ease-out forwards;
-    }
-    @keyframes fly {
-      0% {
-        opacity: 1;
-        transform: translateY(1) scale(1);
-      }
-      100% {
-        opacity: 0;
-        transform: translateY(-200px) scale(3.2);
-      }
-    }
 
-    /* Score Display */
-    #scoreDisplay {
-      position: absolute;
-      top: 30px; /* Adjust top margin for position */
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 30px;
+    #imageContainer {
       display: flex;
+      justify-content: center;
       align-items: center;
-      gap: 10px;
-      color: white;
-      z-index: 10;
     }
 
-    #coinIcon {
-      width: 25px;
-      height: 25px;
+    #centerImage {
+      width: 150px;
+      height: 150px;
+      transition: transform 0.1s, width 0.5s ease-out, height 0.5s ease-out;
+      user-select: none;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div id="scoreDisplay">
-    <img id="coinIcon" src="coinlogo.png" alt="Coin" />
-    <span id="score">0</span> <!-- Initial score -->
+  <div id="imageContainer">
+    <img id="centerImage" src="alex.png" alt="Alex">
   </div>
 
-  <div id="character"></div>
-
   <script>
-    const character = document.getElementById('character');
-    const scoreDisplay = document.getElementById('score');
-    const coinIcon = document.getElementById('coinIcon'); // Coin icon element
+    const centerImage = document.getElementById('centerImage');
 
-    // Get the current score from localStorage or default to 0
-    let score = parseInt(localStorage.getItem('score')) || 0;
-    scoreDisplay.textContent = score;
+    let currentSizeIncrement = 0;
+    let shrinkInterval;
 
-    // Save score to localStorage whenever it changes
-    function updateScore() {
-      localStorage.setItem('score', score);
-      scoreDisplay.textContent = score;
-    }
+    centerImage.addEventListener('click', () => {
+      // Stop shrinking during a tap
+      clearInterval(shrinkInterval);
 
-    // Hide the character when clicked
-    character.addEventListener('click', () => {
-      character.style.opacity = 0;
-      setTimeout(() => {
-        character.style.opacity = 1;
-      }, 1000); // Match disappearing time
+      // Increase size
+      currentSizeIncrement += 5;
+      centerImage.style.width = `${150 + currentSizeIncrement}px`;
+      centerImage.style.height = `${150 + currentSizeIncrement}px`;
+
+      // Start shrinking back to normal
+      shrinkInterval = setInterval(() => {
+        if (currentSizeIncrement > 0) {
+          currentSizeIncrement -= 5;
+          centerImage.style.width = `${150 + currentSizeIncrement}px`;
+          centerImage.style.height = `${150 + currentSizeIncrement}px`;
+        } else {
+          clearInterval(shrinkInterval);
+        }
+      }, 500);
     });
-
-    // Function to create number animations
-    function createFlyingNumber(x, y) {
-      const number = document.createElement('div');
-      number.className = 'number';
-      number.style.left = `${x}px`;
-      number.style.top = `${y}px`;
-      number.textContent = '+1'; // You can change this dynamically
-      document.body.appendChild(number);
-
-      // Remove the number after animation ends
-      number.addEventListener('animationend', () => {
-        number.remove();
-      });
-
-      // Increment score and update display
-      score += 1;
-      updateScore();
-    }
-
-    let touchStartX = 0;
-    let touchStartY = 0;
-
-    // Handle mouse click (for PC)
-    document.body.addEventListener('click', (e) => {
-      createFlyingNumber(e.clientX, e.clientY);
-    });
-
-    // Listen to touch events for multi-touch support
-    document.body.addEventListener('touchstart', (e) => {
-      e.preventDefault();  // Prevent default touch behavior like scrolling
-
-      // Track the start position
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-    });
-
-    // Listen to touchend to detect swipes and prevent touch counting
-    document.body.addEventListener('touchend', (e) => {
-      e.preventDefault();  // Prevent default touch behavior like scrolling
-
-      // Get the end position
-      const touchEndX = e.changedTouches[0].clientX;
-      const touchEndY = e.changedTouches[0].clientY;
-
-      // Calculate the distance moved
-      const deltaX = Math.abs(touchEndX - touchStartX);
-      const deltaY = Math.abs(touchEndY - touchStartY);
-
-      // Define a swipe threshold (you can adjust this value)
-      const swipeThreshold = 30; // Minimum movement in pixels to count as a swipe
-
-      // If the movement exceeds the threshold, it's considered a swipe, so we don't count it as a tap
-      if (deltaX > swipeThreshold || deltaY > swipeThreshold) {
-        console.log('Swipe detected, ignoring tap');
-      } else {
-        // If it's a tap (no significant movement), create the flying number
-        createFlyingNumber(touchEndX, touchEndY);
-      }
-    });
-
   </script>
 </body>
 </html>

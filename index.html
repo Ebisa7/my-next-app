@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Image Grow on Tap</title>
+  <title>Flying Numbers Animation</title>
   <style>
     body {
       margin: 0;
@@ -19,51 +19,122 @@
       position: relative;
     }
 
-    #imageContainer {
+    .number {
+      position: absolute;
+      font-size: 20px;
+      font-weight: bold;
+      animation: fly 1s ease-out forwards;
+    }
+
+    @keyframes fly {
+      0% {
+        opacity: 1;
+        transform: translateY(1) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-200px) scale(3.2);
+      }
+    }
+
+    /* Score Display */
+    #scoreDisplay {
+      position: absolute;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 30px;
       display: flex;
-      justify-content: center;
       align-items: center;
+      gap: 10px;
+      color: white;
+      z-index: 10;
+    }
+
+    #coinIcon {
+      width: 25px;
+      height: 25px;
     }
 
     #centerImage {
+      position: absolute;
       width: 150px;
       height: 150px;
-      transition: transform 0.1s, width 0.5s ease-out, height 0.5s ease-out;
-      user-select: none;
-      cursor: pointer;
+      transition: width 0.1s, height 0.1s, transform 0.5s ease-out;
     }
   </style>
 </head>
 <body>
-  <div id="imageContainer">
-    <img id="centerImage" src="alex.png" alt="Alex">
+  <div id="scoreDisplay">
+    <img id="coinIcon" src="coinlogo.png" alt="Coin" />
+    <span id="score">0</span>
   </div>
+
+  <img id="centerImage" src="alex.png" alt="Center Image">
 
   <script>
     const centerImage = document.getElementById('centerImage');
+    const scoreDisplay = document.getElementById('score');
+    let score = parseInt(localStorage.getItem('score')) || 0;
+    scoreDisplay.textContent = score;
 
-    let currentSizeIncrement = 0;
+    let sizeIncrement = 0;
     let shrinkInterval;
 
-    centerImage.addEventListener('click', () => {
-      // Stop shrinking during a tap
-      clearInterval(shrinkInterval);
+    // Update score
+    function updateScore() {
+      localStorage.setItem('score', score);
+      scoreDisplay.textContent = score;
+    }
 
-      // Increase size
-      currentSizeIncrement += 5;
-      centerImage.style.width = `${150 + currentSizeIncrement}px`;
-      centerImage.style.height = `${150 + currentSizeIncrement}px`;
+    // Create flying numbers
+    function createFlyingNumber(x, y) {
+      const number = document.createElement('div');
+      number.className = 'number';
+      number.style.left = `${x}px`;
+      number.style.top = `${y}px`;
+      number.textContent = '+1';
+      document.body.appendChild(number);
 
-      // Start shrinking back to normal
+      number.addEventListener('animationend', () => {
+        number.remove();
+      });
+
+      score += 1;
+      updateScore();
+    }
+
+    // Grow the image
+    function growImage() {
+      clearInterval(shrinkInterval); // Stop shrinking while tapping
+      sizeIncrement += 5;
+      centerImage.style.width = `${150 + sizeIncrement}px`;
+      centerImage.style.height = `${150 + sizeIncrement}px`;
+
+      // Start shrinking back to normal size
       shrinkInterval = setInterval(() => {
-        if (currentSizeIncrement > 0) {
-          currentSizeIncrement -= 5;
-          centerImage.style.width = `${150 + currentSizeIncrement}px`;
-          centerImage.style.height = `${150 + currentSizeIncrement}px`;
+        if (sizeIncrement > 0) {
+          sizeIncrement -= 5;
+          centerImage.style.width = `${150 + sizeIncrement}px`;
+          centerImage.style.height = `${150 + sizeIncrement}px`;
         } else {
           clearInterval(shrinkInterval);
         }
       }, 500);
+    }
+
+    // Handle clicks and taps
+    document.body.addEventListener('click', (e) => {
+      createFlyingNumber(e.clientX, e.clientY);
+      growImage();
+    });
+
+    document.body.addEventListener('touchstart', (e) => {
+      e.preventDefault(); // Prevent scrolling
+      const touchX = e.touches[0].clientX;
+      const touchY = e.touches[0].clientY;
+      createFlyingNumber(touchX, touchY);
+      growImage();
     });
   </script>
 </body>

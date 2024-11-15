@@ -18,14 +18,12 @@
       background-size: cover;
       position: relative;
     }
-
     .number {
       position: absolute;
       font-size: 20px;
       font-weight: bold;
       animation: fly 1s ease-out forwards;
     }
-
     @keyframes fly {
       0% {
         opacity: 1;
@@ -33,10 +31,9 @@
       }
       100% {
         opacity: 0;
-        transform: translateY(-250px) scale(4);
+        transform: translateY(-200px) scale(3.2);
       }
     }
-
     #character {
       width: 100px;
       height: 100px;
@@ -59,15 +56,15 @@
       z-index: 10;
     }
 
-    #scoreDisplay img {
-      width: 30px; /* Size of the coin logo */
-      height: 30px;
+    #coinIcon {
+      width: 25px;
+      height: 25px;
     }
   </style>
 </head>
 <body>
   <div id="scoreDisplay">
-    <img src="coinlogo.png" alt="Coin Logo">
+    <img id="coinIcon" src="coinlogo.png" alt="Coin" />
     <span id="score">0</span> <!-- Initial score -->
   </div>
 
@@ -76,16 +73,16 @@
   <script>
     const character = document.getElementById('character');
     const scoreDisplay = document.getElementById('score');
-    const coinLogo = document.querySelector('#scoreDisplay img');
+    const coinIcon = document.getElementById('coinIcon'); // Coin icon element
 
     // Get the current score from localStorage or default to 0
     let score = parseInt(localStorage.getItem('score')) || 0;
-    scoreDisplay.querySelector('#score').textContent = score;
+    scoreDisplay.textContent = score;
 
     // Save score to localStorage whenever it changes
     function updateScore() {
       localStorage.setItem('score', score);
-      scoreDisplay.querySelector('#score').textContent = score;
+      scoreDisplay.textContent = score;
     }
 
     // Hide the character when clicked
@@ -102,7 +99,7 @@
       number.className = 'number';
       number.style.left = `${x}px`;
       number.style.top = `${y}px`;
-      number.textContent = '+1'; // Increment by 1 for each click or touch
+      number.textContent = '+5'; // You can change this dynamically
       document.body.appendChild(number);
 
       // Remove the number after animation ends
@@ -111,7 +108,7 @@
       });
 
       // Increment score and update display
-      score += 1;
+      score += 5;
       updateScore();
     }
 
@@ -120,27 +117,27 @@
       createFlyingNumber(e.clientX, e.clientY);
     });
 
-    // Handle touch events for multi-touch support (mobile)
+    // Listen to touch events for multi-touch support
     document.body.addEventListener('touchstart', (e) => {
-      e.preventDefault(); // Prevent default touch behavior like scrolling
+      e.preventDefault();  // Prevent default touch behavior like scrolling
       for (let i = 0; i < e.touches.length; i++) {
         const touch = e.touches[i];
         createFlyingNumber(touch.clientX, touch.clientY);
       }
     });
 
-    // Handle touch move events for multi-touch support (mobile)
+    // Listen to touchmove events for multi-touch support
     document.body.addEventListener('touchmove', (e) => {
-      e.preventDefault(); // Prevent default touch behavior like scrolling
+      e.preventDefault();  // Prevent default touch behavior like scrolling
       for (let i = 0; i < e.touches.length; i++) {
         const touch = e.touches[i];
         createFlyingNumber(touch.clientX, touch.clientY);
       }
     });
 
-    // Handle touch end events to clear touch interactions (mobile)
+    // Listen to touchend to clear touch interactions
     document.body.addEventListener('touchend', (e) => {
-      e.preventDefault(); // Prevent default touch behavior like scrolling
+      e.preventDefault();  // Prevent default touch behavior like scrolling
     });
 
   </script>

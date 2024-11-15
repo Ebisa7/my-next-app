@@ -34,13 +34,6 @@
         transform: translateY(-200px) scale(3.2);
       }
     }
-    #character {
-      width: 100px;
-      height: 100px;
-      background: red;
-      border-radius: 50%;
-      transition: opacity 0.3s ease-out;
-    }
 
     /* Score Display */
     #scoreDisplay {
@@ -99,7 +92,7 @@
       number.className = 'number';
       number.style.left = `${x}px`;
       number.style.top = `${y}px`;
-      number.textContent = '+5'; // You can change this dynamically
+      number.textContent = '+1'; // You can change this dynamically
       document.body.appendChild(number);
 
       // Remove the number after animation ends
@@ -108,9 +101,12 @@
       });
 
       // Increment score and update display
-      score += 5;
+      score += 1;
       updateScore();
     }
+
+    let touchStartX = 0;
+    let touchStartY = 0;
 
     // Handle mouse click (for PC)
     document.body.addEventListener('click', (e) => {
@@ -120,24 +116,34 @@
     // Listen to touch events for multi-touch support
     document.body.addEventListener('touchstart', (e) => {
       e.preventDefault();  // Prevent default touch behavior like scrolling
-      for (let i = 0; i < e.touches.length; i++) {
-        const touch = e.touches[i];
-        createFlyingNumber(touch.clientX, touch.clientY);
-      }
+
+      // Track the start position
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
     });
 
-    // Listen to touchmove events for multi-touch support
-    document.body.addEventListener('touchmove', (e) => {
-      e.preventDefault();  // Prevent default touch behavior like scrolling
-      for (let i = 0; i < e.touches.length; i++) {
-        const touch = e.touches[i];
-        createFlyingNumber(touch.clientX, touch.clientY);
-      }
-    });
-
-    // Listen to touchend to clear touch interactions
+    // Listen to touchend to detect swipes and prevent touch counting
     document.body.addEventListener('touchend', (e) => {
       e.preventDefault();  // Prevent default touch behavior like scrolling
+
+      // Get the end position
+      const touchEndX = e.changedTouches[0].clientX;
+      const touchEndY = e.changedTouches[0].clientY;
+
+      // Calculate the distance moved
+      const deltaX = Math.abs(touchEndX - touchStartX);
+      const deltaY = Math.abs(touchEndY - touchStartY);
+
+      // Define a swipe threshold (you can adjust this value)
+      const swipeThreshold = 30; // Minimum movement in pixels to count as a swipe
+
+      // If the movement exceeds the threshold, it's considered a swipe, so we don't count it as a tap
+      if (deltaX > swipeThreshold || deltaY > swipeThreshold) {
+        console.log('Swipe detected, ignoring tap');
+      } else {
+        // If it's a tap (no significant movement), create the flying number
+        createFlyingNumber(touchEndX, touchEndY);
+      }
     });
 
   </script>

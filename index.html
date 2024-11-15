@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <title>Flying Numbers Animation</title>
   <style>
   html, body {
@@ -80,6 +81,24 @@
   <img id="centerImage" src="alex.png" alt="Center Image">
 
   <script>
+    const tg = window.Telegram.WebApp;
+
+    tg.ready();
+
+    // Hide the back button on index.html
+    tg.BackButton.hide();
+
+      if (tg) {
+            tg.expand();
+            tg.enableClosingConfirmation();
+        }
+
+       // Set header color for Telegram WebApp
+    if (window.Telegram) {
+      Telegram.WebApp.setHeaderColor("#2D1A0F"); // Set desired color
+      Telegram.WebApp.setBackgroundColor("#2D1A0F"); // Set background color
+    }
+    
     const centerImage = document.getElementById('centerImage');
     const scoreDisplay = document.getElementById('score');
     let score = parseInt(localStorage.getItem('score')) || 0;

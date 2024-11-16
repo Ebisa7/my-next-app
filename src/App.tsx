@@ -139,7 +139,7 @@ const App: React.FC = () => {
               <Hamster size={24} className="text-[#d4d4d4]" />
             </div>
             <div>
-              <p className="text-sm">User name (CEO)</p>
+              <p className="text-sm">User(CEO)</p>
             </div>
           </div>
           <div className="flex items-center justify-between space-x-4 mt-1">

@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Send Comments</title>
   <script type="module">
     // Import Firebase libraries
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
@@ -25,7 +26,7 @@
     const database = getDatabase(app);
 
     // Function to send comments to Firebase
-    function sendComment() {
+    window.sendComment = function () {
       const commentInput = document.getElementById("commentInput").value.trim();
       if (commentInput) {
         const commentsRef = ref(database, "comments/");
@@ -39,14 +40,13 @@
           })
           .catch((error) => {
             console.error("Error sending comment:", error);
-            alert("Failed to send comment. Check console for details.");
+            alert("Failed to send comment. Check the console for details.");
           });
       } else {
         alert("Please enter a comment before sending.");
       }
-    }
+    };
   </script>
-  <title>Send Comments</title>
 </head>
 <body>
   <h1>Send a Comment</h1>

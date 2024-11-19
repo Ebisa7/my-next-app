@@ -3,182 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js"></script>
-  <title>Flying Numbers Game</title>
-  <style>
-    html, body {
-      margin: 0;
-      overflow: hidden;
-      touch-action: none;
-      height: 100%;
-    }
+  <script type="module">
+    // Import Firebase libraries
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
-    body {
-      display: flex;
-      background-image: url('bg.jpeg');
-      background-size: cover;
-      background-position: center;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      position: relative;
-      font-family: Arial, sans-serif;
-    }
-
-    .number {
-      position: absolute;
-      font-size: 20px;
-      font-weight: bold;
-      animation: fly 1s ease-out forwards;
-      color: white;
-    }
-
-    @keyframes fly {
-      0% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-      100% {
-        opacity: 0;
-        transform: translateY(-200px) scale(2);
-      }
-    }
-
-    #scoreDisplay {
-      position: absolute;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 30px;
-      display: flex;
-      align-items: center;
-      color: white;
-      z-index: 10;
-    }
-
-    #coinIcon {
-      width: 30px;
-      height: 30px;
-      margin-right: 10px;
-    }
-
-    #centerImage {
-      position: absolute;
-      width: 300px;
-      height: 300px;
-      transition: transform 0.2s;
-    }
-  </style>
-</head>
-<body>
-  <div id="scoreDisplay">
-    <img id="coinIcon" src="coinlogo.png" alt="Coin" />
-    <span id="score">0</span>
-  </div>
-
-  <img id="centerImage" src="alex.png" alt="Main Game Image">
-
-  <script>
-    // Initialize Telegram WebApp
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.BackButton.hide();
-    tg.expand();
-    Telegram.WebApp.setHeaderColor("#3C210C");
-    Telegram.WebApp.setBackgroundColor("#3C210C");
-
-    // Firebase configuration
+    // Your Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyBX3g8wWxcTtwFDsJNJVcjUDIGxMd1L0Rk",
-  authDomain: "mytestapp-f6913.firebaseapp.com",
-  databaseURL: "https://mytestapp-f6913-default-rtdb.firebaseio.com",
-  projectId: "mytestapp-f6913",
-  storageBucket: "mytestapp-f6913.firebasestorage.app",
-  messagingSenderId: "300150696072",
-  appId: "1:300150696072:web:1e29cb5a813d004018573d",
-  measurementId: "G-PPDR4TBQF5"
+      authDomain: "mytestapp-f6913.firebaseapp.com",
+      databaseURL: "https://mytestapp-f6913-default-rtdb.firebaseio.com",
+      projectId: "mytestapp-f6913",
+      storageBucket: "mytestapp-f6913.firebasestorage.app",
+      messagingSenderId: "300150696072",
+      appId: "1:300150696072:web:1e29cb5a813d004018573d",
+      measurementId: "G-PPDR4TBQF5"
     };
 
     // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore(app);
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
 
-    const centerImage = document.getElementById('centerImage');
-    const scoreDisplay = document.getElementById('score');
-    let score = parseInt(localStorage.getItem('score')) || 0;
-    scoreDisplay.textContent = score;
-
-    const user = tg.initDataUnsafe.user || {};
-    const userData = {
-      name: `${user.first_name || 'Guest'} ${user.last_name || ''}`.trim(),
-      username: user.username || "No username",
-      id: user.id || "Unknown",
-      coinBalance: score
-    };
-
-    // Send user data to Firestore when the game starts
-    async function sendUserData() {
-      try {
-        await db.collection('users').doc(`${userData.id}`).set(userData, { merge: true });
-        console.log("User data sent to Firestore:", userData);
-      } catch (error) {
-        console.error("Error sending user data to Firestore:", error);
+    // Function to send comments to Firebase
+    function sendComment() {
+      const commentInput = document.getElementById("commentInput").value.trim();
+      if (commentInput) {
+        const commentsRef = ref(database, "comments/");
+        push(commentsRef, {
+          comment: commentInput,
+          timestamp: new Date().toISOString()
+        })
+          .then(() => {
+            alert("Comment sent!");
+            document.getElementById("commentInput").value = ""; // Clear input
+          })
+          .catch((error) => {
+            console.error("Error sending comment:", error);
+            alert("Failed to send comment. Check console for details.");
+          });
+      } else {
+        alert("Please enter a comment before sending.");
       }
     }
-    sendUserData();
-
-    // Update score
-    function updateScore() {
-      score++;
-      localStorage.setItem('score', score);
-      scoreDisplay.textContent = score;
-      userData.coinBalance = score;
-
-      // Update Firestore automatically
-      db.collection('users').doc(`${userData.id}`).update({
-        coinBalance: score
-      }).then(() => {
-        console.log("Score updated in Firestore:", score);
-      }).catch((error) => {
-        console.error("Error updating score in Firestore:", error);
-      });
-    }
-
-    // Create flying numbers
-    function createFlyingNumber(x, y) {
-      const number = document.createElement('div');
-      number.className = 'number';
-      number.style.left = `${x}px`;
-      number.style.top = `${y}px`;
-      number.textContent = '+1';
-      document.body.appendChild(number);
-
-      number.addEventListener('animationend', () => number.remove());
-      updateScore();
-    }
-
-    // Handle clicks
-    document.body.addEventListener('click', (e) => {
-      const { clientX, clientY } = e;
-      createFlyingNumber(clientX, clientY);
-
-      // Grow and shrink center image
-      centerImage.style.transform = 'scale(1.2)';
-      setTimeout(() => centerImage.style.transform = 'scale(1)', 100);
-    });
-
-    // Handle taps for touchscreens
-    document.body.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      const touch = e.touches[0];
-      createFlyingNumber(touch.clientX, touch.clientY);
-
-      // Grow and shrink center image
-      centerImage.style.transform = 'scale(1.2)';
-      setTimeout(() => centerImage.style.transform = 'scale(1)', 100);
-    });
   </script>
+  <title>Send Comments</title>
+</head>
+<body>
+  <h1>Send a Comment</h1>
+  <div>
+    <input type="text" id="commentInput" placeholder="Enter your comment here" style="width: 300px; padding: 10px; font-size: 16px;">
+    <button onclick="sendComment()" style="padding: 10px 20px; font-size: 16px;">Send</button>
+  </div>
 </body>
 </html>

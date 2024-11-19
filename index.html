@@ -3,56 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Send Comments</title>
-  <script type="module">
-    // Import Firebase libraries
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-    import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
-
-    // Your Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyBX3g8wWxcTtwFDsJNJVcjUDIGxMd1L0Rk",
-      authDomain: "mytestapp-f6913.firebaseapp.com",
-      databaseURL: "https://mytestapp-f6913-default-rtdb.firebaseio.com",
-      projectId: "mytestapp-f6913",
-      storageBucket: "mytestapp-f6913.firebasestorage.app",
-      messagingSenderId: "300150696072",
-      appId: "1:300150696072:web:1e29cb5a813d004018573d",
-      measurementId: "G-PPDR4TBQF5"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
-
-    // Function to send comments to Firebase
-    window.sendComment = function () {
-      const commentInput = document.getElementById("commentInput").value.trim();
-      if (commentInput) {
-        const commentsRef = ref(database, "comments/");
-        push(commentsRef, {
-          comment: commentInput,
-          timestamp: new Date().toISOString()
-        })
-          .then(() => {
-            alert("Comment sent!");
-            document.getElementById("commentInput").value = ""; // Clear input
-          })
-          .catch((error) => {
-            console.error("Error sending comment:", error);
-            alert("Failed to send comment. Check the console for details.");
-          });
-      } else {
-        alert("Please enter a comment before sending.");
-      }
-    };
-  </script>
+  <title>Firebase Comment Sender</title>
 </head>
 <body>
   <h1>Send a Comment</h1>
-  <div>
-    <input type="text" id="commentInput" placeholder="Enter your comment here" style="width: 300px; padding: 10px; font-size: 16px;">
-    <button onclick="sendComment()" style="padding: 10px 20px; font-size: 16px;">Send</button>
-  </div>
+  <form id="commentForm">
+    <input type="text" id="commentInput" placeholder="Enter your comment" required />
+    <button type="submit">Send Comment</button>
+  </form>
+  <p id="message"></p>
+
+  <script type="module">
+    import { initializeApp } from "firebase/app";
+    import { getFirestore, collection, addDoc } from "firebase/firestore";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBX3g8wWxcTtwFDsJNJVcjUDIGxMd1L0Rk",
+      authDomain: "mytestapp-f6913.firebaseapp.com",
+      projectId: "mytestapp-f6913",
+      storageBucket: "mytestapp-f6913.appspot.com",
+      messagingSenderId: "300150696072",
+      appId: "1:300150696072:web:1e29cb5a813d004018573d",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const commentForm = document.getElementById("commentForm");
+    const commentInput = document.getElementById("commentInput");
+    const message = document.getElementById("message");
+
+    commentForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const comment = commentInput.value;
+
+      try {
+        await addDoc(collection(db, "comments"), {
+          text: comment,
+          timestamp: new Date()
+        });
+        message.textContent = "Comment sent successfully!";
+        commentInput.value = "";
+      } catch (error) {
+        console.error("Error sending comment:", error);
+        message.textContent = "Failed to send comment. Check the console for details.";
+      }
+    });
+  </script>
 </body>
 </html>

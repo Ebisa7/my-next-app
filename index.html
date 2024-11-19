@@ -3,52 +3,205 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Firebase Comment Sender</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <title>Flying Numbers Animation</title>
+  <style>
+    /* Styling for the game */
+    html, body {
+      margin: 0;
+      overflow: hidden;
+      touch-action: none;
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      display: flex;
+      background-image: url('bg.jpeg');
+      background-size: cover;
+      background-position: center;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: white;
+      position: relative;
+    }
+
+    .number {
+      position: absolute;
+      font-size: 20px;
+      font-weight: bold;
+      animation: fly 1s ease-out forwards;
+    }
+
+    @keyframes fly {
+      0% {
+        opacity: 1;
+        transform: translateY(1) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-300px) scale(3.2);
+      }
+    }
+
+    #scoreDisplay {
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 30px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: white;
+      z-index: 10;
+    }
+
+    #coinIcon {
+      width: 25px;
+      height: 25px;
+    }
+
+    #centerImage {
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      transition: width 0.1s, height 0.1s, transform 0.5s ease-out;
+    }
+  </style>
 </head>
 <body>
-  <h1>Send a Comment</h1>
-  <form id="commentForm">
-    <input type="text" id="commentInput" placeholder="Enter your comment" required />
-    <button type="submit">Send Comment</button>
-  </form>
-  <p id="message"></p>
+  <div id="scoreDisplay">
+    <img id="coinIcon" src="coinlogo.png" alt="Coin" />
+    <span id="score">0</span>
+  </div>
+
+  <img id="centerImage" src="alex.png" alt="Center Image">
 
   <script type="module">
-    import { initializeApp } from "firebase/app";
-    import { getFirestore, collection, addDoc } from "firebase/firestore";
+    // Import Firebase SDK
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
+    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyBX3g8wWxcTtwFDsJNJVcjUDIGxMd1L0Rk",
       authDomain: "mytestapp-f6913.firebaseapp.com",
+      databaseURL: "https://mytestapp-f6913-default-rtdb.firebaseio.com",
       projectId: "mytestapp-f6913",
-      storageBucket: "mytestapp-f6913.appspot.com",
+      storageBucket: "mytestapp-f6913.firebasestorage.app",
       messagingSenderId: "300150696072",
       appId: "1:300150696072:web:1e29cb5a813d004018573d",
+      measurementId: "G-PPDR4TBQF5"
     };
 
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const commentForm = document.getElementById("commentForm");
-    const commentInput = document.getElementById("commentInput");
-    const message = document.getElementById("message");
+    // Initialize Telegram Web App
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.BackButton.hide();
+    tg.expand();
+    tg.enableClosingConfirmation();
 
-    commentForm.addEventListener("submit", async (e) => {
+    // Set header color
+    Telegram.WebApp.setHeaderColor("#3C210C");
+
+    // Elements
+    const scoreDisplay = document.getElementById('score');
+    const centerImage = document.getElementById('centerImage');
+    let score = 0;
+    let sizeIncrement = 0;
+    let tapCount = 0;
+
+    // Fetch user data from Firestore
+    async function fetchUserData() {
+      const userId = tg.initDataUnsafe.user.id;
+      const docRef = doc(db, "users", userId.toString());
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        // If data exists, update the score
+        const data = docSnap.data();
+        score = data.coinBalance;
+        scoreDisplay.textContent = score;
+      } else {
+        // Create a new document if no data exists
+        await setDoc(docRef, { coinBalance: 0 });
+        scoreDisplay.textContent = score;
+      }
+    }
+
+    // Update score in Firestore
+    async function updateScore() {
+      const userId = tg.initDataUnsafe.user.id;
+      const docRef = doc(db, "users", userId.toString());
+      await setDoc(docRef, { coinBalance: score }, { merge: true });
+    }
+
+    // Create flying numbers animation
+    function createFlyingNumber(x, y) {
+      const number = document.createElement('div');
+      number.className = 'number';
+      number.style.left = `${x}px`;
+      number.style.top = `${y}px`;
+      number.textContent = '+1';
+      document.body.appendChild(number);
+
+      number.addEventListener('animationend', () => {
+        number.remove();
+      });
+
+      score += 1;
+      scoreDisplay.textContent = score;
+      updateScore();
+    }
+
+    // Handle tap and click events
+    function growImage() {
+      if (tapCount < 10) {
+        sizeIncrement += 5;
+        centerImage.style.width = `${300 + sizeIncrement}px`;
+        centerImage.style.height = `${300 + sizeIncrement}px`;
+        tapCount++;
+      }
+
+      if (tapCount === 10) {
+        clearInterval(shrinkInterval);
+        shrinkInterval = setInterval(() => {
+          if (sizeIncrement > 0) {
+            sizeIncrement -= 5;
+            centerImage.style.width = `${300 + sizeIncrement}px`;
+            centerImage.style.height = `${300 + sizeIncrement}px`;
+          } else {
+            clearInterval(shrinkInterval);
+          }
+        }, 500);
+      }
+    }
+
+    // Event listeners
+    document.body.addEventListener('click', (e) => {
+      createFlyingNumber(e.clientX, e.clientY);
+      growImage();
+    });
+
+    document.body.addEventListener('touchstart', (e) => {
       e.preventDefault();
-      const comment = commentInput.value;
-
-      try {
-        await addDoc(collection(db, "comments"), {
-          text: comment,
-          timestamp: new Date()
-        });
-        message.textContent = "Comment sent successfully!";
-        commentInput.value = "";
-      } catch (error) {
-        console.error("Error sending comment:", error);
-        message.textContent = "Failed to send comment. Check the console for details.";
+      for (let i = 0; i < e.touches.length; i++) {
+        const touchX = e.touches[i].clientX;
+        const touchY = e.touches[i].clientY;
+        createFlyingNumber(touchX, touchY);
+        growImage();
       }
     });
+
+    // Load user data on page load
+    fetchUserData();
   </script>
 </body>
 </html>

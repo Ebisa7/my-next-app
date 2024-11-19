@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome (for icons) -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* Global Styles */
+    body {
+      background: linear-gradient(135deg, #6B4F31, #3A2C1D);
+      font-family: 'Roboto', sans-serif;
+      color: white;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 3rem;
+      margin: 40px 0;
+      color: #fff;
+    }
+
+    .container {
+      width: 90%;
+      margin: 0 auto;
+      padding: 30px 0;
+    }
+
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .dashboard-header h2 {
+      font-size: 2rem;
+      color: #f4c542;
+    }
+
+    .dashboard-header .search-box input {
+      padding: 10px 15px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 10px;
+      outline: none;
+      background: #f4c542;
+      color: #333;
+    }
+
+    .card-container {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background: #6B4F31;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      flex-basis: 30%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card h3 {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      color: #f4c542;
+    }
+
+    .card p {
+      font-size: 1.5rem;
+      color: #fff;
+    }
+
+    .card .icon {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 2.5rem;
+      color: #f4c542;
+    }
+
+    /* Table Styles */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 50px;
+    }
+
+    table, th, td {
+      border: 3px solid #f4c542;
+      border-radius: 10px;
+    }
+
+    th, td {
+      padding: 15px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #4A2C1D;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: white;
+    }
+
+    td {
+      background-color: rgba(0, 0, 0, 0.3);
+      font-size: 1rem;
+    }
+
+    /* Chart Section */
+    .chart-container {
+      margin-top: 40px;
+      background: #6B4F31;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .chart-container canvas {
+      width: 100% !important;
+      height: 400px !important;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+      .card-container {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Alex Empire Dashboard</h1>
+
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+      <h2>Real-Time Analytics</h2>
+      <div class="search-box">
+        <input type="text" placeholder="Search Users..." id="searchInput">
+      </div>
+    </div>
+
+    <!-- Card Section -->
+    <div class="card-container">
+      <div class="card" id="total-users-card">
+        <i class="fas fa-users icon"></i>
+        <h3>Total Users</h3>
+        <p id="total-users">0</p>
+      </div>
+      <div class="card" id="premium-users-card">
+        <i class="fas fa-crown icon"></i>
+        <h3>Premium Users</h3>
+        <p id="premium-users">0</p>
+      </div>
+      <div class="card" id="total-coins-card">
+        <i class="fas fa-coins icon"></i>
+        <h3>Total Coins</h3>
+        <p id="total-coins">0</p>
+      </div>
+    </div>
+
+    <!-- Table Section -->
+    <table id="users-table">
+      <thead>
+        <tr>
+          <th>User ID</th>
+          <th>Name</th>
+          <th>Username</th>
+          <th>Coin Balance</th>
+          <th>Premium Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Data will be inserted here -->
+      </tbody>
+    </table>
+
+    <!-- Chart Section -->
+    <div class="chart-container">
+      <h2>User Statistics</h2>
+      <canvas id="userChart"></canvas>
+    </div>
+  </div>
+
+  <script type="module">
+    // Firebase Configuration and Setup
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+    // Firebase configuration object
+    const firebaseConfig = {
+      apiKey: "AIzaSyBX3g8wWxcTtwFDsJNJVcjUDIGxMd1L0Rk",
+      authDomain: "mytestapp-f6913.firebaseapp.com",
+      databaseURL: "https://mytestapp-f6913-default-rtdb.firebaseio.com",
+      projectId: "mytestapp-f6913",
+      storageBucket: "mytestapp-f6913.firebasestorage.app",
+      messagingSenderId: "300150696072",
+      appId: "1:300150696072:web:1e29cb5a813d004018573d",
+      measurementId: "G-PPDR4TBQF5"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Reference to Firestore collection
+    const usersCollectionRef = collection(db, "users");
+
+    // Data storage for analysis and chart
+    let totalUsers = 0;
+    let premiumUsers = 0;
+    let totalCoins = 0;
+    let coinBalances = [];
+
+    // Render Table Function
+    function renderTable(data) {
+      const tableBody = document.getElementById("users-table").getElementsByTagName("tbody")[0];
+      tableBody.innerHTML = "";
+
+      data.forEach(doc => {
+        const user = doc.data();
+        const coinBalance = user.coinBalance || 0;
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${user.id}</td>
+          <td>${user.name}</td>
+          <td>${user.username}</td>
+          <td>${coinBalance}</td>
+          <td>${user.isPremium ? 'Yes' : 'No'}</td>
+        `;
+        tableBody.appendChild(row);
+
+        // Analytics data
+        totalUsers++;
+        if (user.isPremium) premiumUsers++;
+        totalCoins += coinBalance;
+        coinBalances.push(coinBalance);
+      });
+
+      // Update Analytics Cards
+      document.getElementById("total-users").textContent = totalUsers;
+      document.getElementById("premium-users").textContent = premiumUsers;
+      document.getElementById("total-coins").textContent = totalCoins;
+
+      // Update Chart
+      updateChart();
+    }
+
+    // Update Chart Function
+    function updateChart() {
+      const ctx = document.getElementById('userChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: Array.from({ length: coinBalances.length }, (_, i) => `User ${i + 1}`),
+          datasets: [{
+            label: 'Coin Balances',
+            data: coinBalances,
+            borderColor: '#f4c542',
+            backgroundColor: 'rgba(244, 196, 66, 0.2)',
+            fill: true,
+            tension: 0.4,
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true },
+            x: { title: { display: true, text: 'User' } },
+          }
+        }
+      });
+    }
+
+    // Real-time Firestore listener
+    onSnapshot(usersCollectionRef, (snapshot) => {
+      renderTable(snapshot.docs);
+    });
+  </script>
+</body>
+</html>

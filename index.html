@@ -9,15 +9,13 @@
   <title>Flying Numbers Animation</title>
   <style>
     html, body {
-    margin: 0;
-    overflow: hidden; /* Prevents scrolling */
-    touch-action: none; /* Disables touch gestures like scroll and zoom */
-    height: 100%; /* Ensures the body and html take up the full viewport */
-  }
-
-    body {
       margin: 0;
       overflow: hidden;
+      touch-action: none;
+      height: 100%;
+    }
+
+    body {
       display: flex;
       background-image: url('bg.jpeg');
       background-size: cover;
@@ -46,9 +44,7 @@
         transform: translateY(-300px) scale(3.2);
       }
     }
- 
 
-    /* Score Display */
     #scoreDisplay {
       position: absolute;
       top: 60px;
@@ -84,8 +80,8 @@
   <img id="centerImage" src="alex.png" alt="Center Image">
 
   <script>
+    // Initialize Telegram WebApp
     const tg = window.Telegram.WebApp;
-
     tg.ready();
     tg.BackButton.hide();
     if (tg) tg.expand();
@@ -127,7 +123,7 @@
       coinBalance: score
     };
 
-    // Send user data and score to Firestore
+    // Send user data to Firestore
     async function sendUserData() {
       try {
         await db.collection('users').doc(`${userData.id}`).set(userData, { merge: true });
@@ -137,12 +133,15 @@
       }
     }
 
+    // Automatically send data to Firestore when the page is opened
+    sendUserData();
+
     // Update score
     function updateScore() {
       localStorage.setItem('score', score);
       scoreDisplay.textContent = score;
       userData.coinBalance = score;
-      sendUserData(); // Automatically send data to Firestore whenever the score updates
+      sendUserData(); // Automatically update Firestore
     }
 
     // Create flying numbers
@@ -162,7 +161,7 @@
       updateScore();
     }
 
-    // Grow the image (only up to 10 taps)
+    // Grow the image (up to 10 taps)
     function growImage() {
       if (tapCount < 10) {
         sizeIncrement += 5;
@@ -185,22 +184,20 @@
       }
     }
 
-    // Handle clicks and taps
+    // Handle clicks
     document.body.addEventListener('click', (e) => {
-      createFlyingNumber(e.clientX, e.clientY);
+      const { clientX, clientY } = e;
+      createFlyingNumber(clientX, clientY);
       growImage();
     });
 
+    // Handle taps
     document.body.addEventListener('touchstart', (e) => {
       e.preventDefault();
-      const touchX = e.touches[0].clientX;
-      const touchY = e.touches[0].clientY;
-      createFlyingNumber(touchX, touchY);
+      const touch = e.touches[0];
+      createFlyingNumber(touch.clientX, touch.clientY);
       growImage();
     });
-
-    // Send initial user data to Firestore
-    sendUserData();
   </script>
 </body>
 </html>

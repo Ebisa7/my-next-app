@@ -81,127 +81,92 @@
   <img id="centerImage" src="alex.png" alt="Center Image">
 
   <script type="module">
-    // Import Firebase SDK
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+  // Import Firebase modules
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-    // Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyBX3g8wWxcTtwFDsJNJVcjUDIGxMd1L0Rk",
-      authDomain: "mytestapp-f6913.firebaseapp.com",
-      databaseURL: "https://mytestapp-f6913-default-rtdb.firebaseio.com",
-      projectId: "mytestapp-f6913",
-      storageBucket: "mytestapp-f6913.firebasestorage.app",
-      messagingSenderId: "300150696072",
-      appId: "1:300150696072:web:1e29cb5a813d004018573d",
-      measurementId: "G-PPDR4TBQF5"
-    };
+  // Firebase configuration (same as the one from the first HTML)
+  const firebaseConfig = {
+    apiKey: "AIzaSyBX3g8wWxcTtwFDsJNJVcjUDIGxMd1L0Rk",
+    authDomain: "mytestapp-f6913.firebaseapp.com",
+    databaseURL: "https://mytestapp-f6913-default-rtdb.firebaseio.com",
+    projectId: "mytestapp-f6913",
+    storageBucket: "mytestapp-f6913.firebasestorage.app",
+    messagingSenderId: "300150696072",
+    appId: "1:300150696072:web:1e29cb5a813d004018573d",
+    measurementId: "G-PPDR4TBQF5"
+  };
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    // Initialize Telegram Web App
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.BackButton.hide();
-    tg.expand();
-    tg.enableClosingConfirmation();
+  // Assuming user data is available (could be from Telegram API or other sources)
+  const userData = {
+    name: "John Doe", // Replace with dynamic user name
+    username: "johndoe123", // Replace with dynamic username
+    id: "123456789", // Replace with dynamic user ID
+    isPremium: true, // Set based on user premium status (true or false)
+  };
 
-    // Set header color
-    Telegram.WebApp.setHeaderColor("#3C210C");
+  // DOM Elements
+  const scoreDisplay = document.getElementById('score');
+  let score = parseInt(localStorage.getItem('score')) || 0;
+  scoreDisplay.textContent = score;
 
-    // Elements
-    const scoreDisplay = document.getElementById('score');
-    const centerImage = document.getElementById('centerImage');
-    let score = 0;
-    let sizeIncrement = 0;
-    let tapCount = 0;
-
-    // Fetch user data from Firestore
-    async function fetchUserData() {
-      const userId = tg.initDataUnsafe.user.id;
-      const docRef = doc(db, "users", userId.toString());
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        // If data exists, update the score
-        const data = docSnap.data();
-        score = data.coinBalance;
-        scoreDisplay.textContent = score;
-      } else {
-        // Create a new document if no data exists
-        await setDoc(docRef, { coinBalance: 0 });
-        scoreDisplay.textContent = score;
-      }
-    }
-
-    // Update score in Firestore
-    async function updateScore() {
-      const userId = tg.initDataUnsafe.user.id;
-      const docRef = doc(db, "users", userId.toString());
-      await setDoc(docRef, { coinBalance: score }, { merge: true });
-    }
-
-    // Create flying numbers animation
-    function createFlyingNumber(x, y) {
-      const number = document.createElement('div');
-      number.className = 'number';
-      number.style.left = `${x}px`;
-      number.style.top = `${y}px`;
-      number.textContent = '+1';
-      document.body.appendChild(number);
-
-      number.addEventListener('animationend', () => {
-        number.remove();
+  // Function to update score and send user data to Firestore
+  const updateUserDataAndScore = async () => {
+    try {
+      // Create a Firestore document to store the user data and score
+      const docRef = doc(db, "user_scores", userData.id);  // Use user ID as the document ID
+      await setDoc(docRef, {
+        score,
+        name: userData.name,
+        username: userData.username,
+        id: userData.id,
+        isPremium: userData.isPremium
       });
-
-      score += 1;
-      scoreDisplay.textContent = score;
-      updateScore();
+      console.log("User data and score updated in Firestore");
+    } catch (error) {
+      console.error("Error writing to Firestore:", error);
     }
+  };
 
-    // Handle tap and click events
-    function growImage() {
-      if (tapCount < 10) {
-        sizeIncrement += 5;
-        centerImage.style.width = `${300 + sizeIncrement}px`;
-        centerImage.style.height = `${300 + sizeIncrement}px`;
-        tapCount++;
-      }
+  // Update score and user data to Firebase Firestore
+  function updateScore() {
+    localStorage.setItem('score', score);
+    scoreDisplay.textContent = score;
+    updateUserDataAndScore();  // Sync with Firestore on each score update
+  }
 
-      if (tapCount === 10) {
-        clearInterval(shrinkInterval);
-        shrinkInterval = setInterval(() => {
-          if (sizeIncrement > 0) {
-            sizeIncrement -= 5;
-            centerImage.style.width = `${300 + sizeIncrement}px`;
-            centerImage.style.height = `${300 + sizeIncrement}px`;
-          } else {
-            clearInterval(shrinkInterval);
-          }
-        }, 500);
-      }
-    }
+  // Create flying numbers (same as before)
+  function createFlyingNumber(x, y) {
+    const number = document.createElement('div');
+    number.className = 'number';
+    number.style.left = `${x}px`;
+    number.style.top = `${y}px`;
+    number.textContent = '+1';
+    document.body.appendChild(number);
 
-    // Event listeners
-    document.body.addEventListener('click', (e) => {
-      createFlyingNumber(e.clientX, e.clientY);
-      growImage();
+    number.addEventListener('animationend', () => {
+      number.remove();
     });
 
-    document.body.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      for (let i = 0; i < e.touches.length; i++) {
-        const touchX = e.touches[i].clientX;
-        const touchY = e.touches[i].clientY;
-        createFlyingNumber(touchX, touchY);
-        growImage();
-      }
-    });
+    score += 1;
+    updateScore();
+  }
 
-    // Load user data on page load
-    fetchUserData();
-  </script>
-</body>
-</html>
+  // Handle user interaction (click or touch)
+  document.body.addEventListener('click', (e) => {
+    createFlyingNumber(e.clientX, e.clientY);
+  });
+
+  document.body.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    for (let i = 0; i < e.touches.length; i++) {
+      const touchX = e.touches[i].clientX;
+      const touchY = e.touches[i].clientY;
+      createFlyingNumber(touchX, touchY);
+    }
+  });
+</script>

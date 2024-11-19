@@ -6,7 +6,7 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js"></script>
-  <title>Flying Numbers Animation</title>
+  <title>Flying Numbers Game</title>
   <style>
     html, body {
       margin: 0;
@@ -23,8 +23,8 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
-      color: white;
       position: relative;
+      font-family: Arial, sans-serif;
     }
 
     .number {
@@ -32,42 +32,43 @@
       font-size: 20px;
       font-weight: bold;
       animation: fly 1s ease-out forwards;
+      color: white;
     }
 
     @keyframes fly {
       0% {
         opacity: 1;
-        transform: translateY(1) scale(1);
+        transform: translateY(0) scale(1);
       }
       100% {
         opacity: 0;
-        transform: translateY(-300px) scale(3.2);
+        transform: translateY(-200px) scale(2);
       }
     }
 
     #scoreDisplay {
       position: absolute;
-      top: 60px;
+      top: 20px;
       left: 50%;
       transform: translateX(-50%);
       font-size: 30px;
       display: flex;
       align-items: center;
-      gap: 10px;
       color: white;
       z-index: 10;
     }
 
     #coinIcon {
-      width: 25px;
-      height: 25px;
+      width: 30px;
+      height: 30px;
+      margin-right: 10px;
     }
 
     #centerImage {
       position: absolute;
       width: 300px;
       height: 300px;
-      transition: width 0.1s, height 0.1s, transform 0.5s ease-out;
+      transition: transform 0.2s;
     }
   </style>
 </head>
@@ -77,28 +78,27 @@
     <span id="score">0</span>
   </div>
 
-  <img id="centerImage" src="alex.png" alt="Center Image">
+  <img id="centerImage" src="alex.png" alt="Main Game Image">
 
   <script>
     // Initialize Telegram WebApp
     const tg = window.Telegram.WebApp;
     tg.ready();
     tg.BackButton.hide();
-    if (tg) tg.expand();
-
+    tg.expand();
     Telegram.WebApp.setHeaderColor("#3C210C");
     Telegram.WebApp.setBackgroundColor("#3C210C");
 
     // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyBX3g8wWxcTtwFDsJNJVcjUDIGxMd1L0Rk",
-      authDomain: "mytestapp-f6913.firebaseapp.com",
-      databaseURL: "https://mytestapp-f6913-default-rtdb.firebaseio.com",
-      projectId: "mytestapp-f6913",
-      storageBucket: "mytestapp-f6913.firebasestorage.app",
-      messagingSenderId: "300150696072",
-      appId: "1:300150696072:web:1e29cb5a813d004018573d",
-      measurementId: "G-PPDR4TBQF5"
+  authDomain: "mytestapp-f6913.firebaseapp.com",
+  databaseURL: "https://mytestapp-f6913-default-rtdb.firebaseio.com",
+  projectId: "mytestapp-f6913",
+  storageBucket: "mytestapp-f6913.firebasestorage.app",
+  messagingSenderId: "300150696072",
+  appId: "1:300150696072:web:1e29cb5a813d004018573d",
+  measurementId: "G-PPDR4TBQF5"
     };
 
     // Initialize Firebase
@@ -110,20 +110,15 @@
     let score = parseInt(localStorage.getItem('score')) || 0;
     scoreDisplay.textContent = score;
 
-    let sizeIncrement = 0;
-    let tapCount = 0; // Track number of taps
-    let shrinkInterval;
-
-    // Fetch Telegram user info
     const user = tg.initDataUnsafe.user || {};
     const userData = {
-      name: user.first_name + (user.last_name ? ` ${user.last_name}` : ''),
+      name: `${user.first_name || 'Guest'} ${user.last_name || ''}`.trim(),
       username: user.username || "No username",
-      id: user.id,
+      id: user.id || "Unknown",
       coinBalance: score
     };
 
-    // Send user data to Firestore
+    // Send user data to Firestore when the game starts
     async function sendUserData() {
       try {
         await db.collection('users').doc(`${userData.id}`).set(userData, { merge: true });
@@ -132,16 +127,23 @@
         console.error("Error sending user data to Firestore:", error);
       }
     }
-
-    // Automatically send data to Firestore when the page is opened
     sendUserData();
 
     // Update score
     function updateScore() {
+      score++;
       localStorage.setItem('score', score);
       scoreDisplay.textContent = score;
       userData.coinBalance = score;
-      sendUserData(); // Automatically update Firestore
+
+      // Update Firestore automatically
+      db.collection('users').doc(`${userData.id}`).update({
+        coinBalance: score
+      }).then(() => {
+        console.log("Score updated in Firestore:", score);
+      }).catch((error) => {
+        console.error("Error updating score in Firestore:", error);
+      });
     }
 
     // Create flying numbers
@@ -153,50 +155,29 @@
       number.textContent = '+1';
       document.body.appendChild(number);
 
-      number.addEventListener('animationend', () => {
-        number.remove();
-      });
-
-      score += 1;
+      number.addEventListener('animationend', () => number.remove());
       updateScore();
-    }
-
-    // Grow the image (up to 10 taps)
-    function growImage() {
-      if (tapCount < 10) {
-        sizeIncrement += 5;
-        centerImage.style.width = `${300 + sizeIncrement}px`;
-        centerImage.style.height = `${300 + sizeIncrement}px`;
-        tapCount++;
-      }
-
-      if (tapCount === 10) {
-        clearInterval(shrinkInterval);
-        shrinkInterval = setInterval(() => {
-          if (sizeIncrement > 0) {
-            sizeIncrement -= 5;
-            centerImage.style.width = `${300 + sizeIncrement}px`;
-            centerImage.style.height = `${300 + sizeIncrement}px`;
-          } else {
-            clearInterval(shrinkInterval);
-          }
-        }, 500);
-      }
     }
 
     // Handle clicks
     document.body.addEventListener('click', (e) => {
       const { clientX, clientY } = e;
       createFlyingNumber(clientX, clientY);
-      growImage();
+
+      // Grow and shrink center image
+      centerImage.style.transform = 'scale(1.2)';
+      setTimeout(() => centerImage.style.transform = 'scale(1)', 100);
     });
 
-    // Handle taps
+    // Handle taps for touchscreens
     document.body.addEventListener('touchstart', (e) => {
       e.preventDefault();
       const touch = e.touches[0];
       createFlyingNumber(touch.clientX, touch.clientY);
-      growImage();
+
+      // Grow and shrink center image
+      centerImage.style.transform = 'scale(1.2)';
+      setTimeout(() => centerImage.style.transform = 'scale(1)', 100);
     });
   </script>
 </body>

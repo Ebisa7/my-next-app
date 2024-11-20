@@ -154,6 +154,17 @@
       await setDoc(docRef, userData, { merge: true }); // Merge to avoid overwriting other data
     }
 
+    // Handle tap and multi-touch events
+document.body.addEventListener('touchstart', (e) => {
+  e.preventDefault(); // Prevent scrolling or other default actions
+  for (let i = 0; i < e.touches.length; i++) {
+    const touchX = e.touches[i].clientX;
+    const touchY = e.touches[i].clientY;
+    createFlyingNumber(touchX, touchY); // Create flying numbers for each touch point
+    growImage(); // Trigger growth for each tap
+  }
+});
+
     // Create flying numbers animation
     function createFlyingNumber(x, y) {
       const number = document.createElement('div');
